@@ -1,9 +1,6 @@
 # Use an official Python runtime as the base image
 FROM python:3.9
 
-# Set the working directory
-WORKDIR /app
-
 # Install system dependencies (ffmpeg and curl)
 RUN apt-get update && \
     apt-get install -y ffmpeg curl && \
@@ -17,6 +14,14 @@ RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o 
 # Verify yt-dlp installation
 RUN yt-dlp --version
 
+# Create a non-root user
+RUN useradd -m -u 1000 user
+USER user
+ENV PATH="/home/user/.local/bin:$PATH"
+
+# Set the working directory
+WORKDIR /app
+
 # Copy requirements.txt
 COPY requirements.txt .
 
@@ -26,11 +31,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY . .
 
-# Create the download directory
-RUN mkdir -p /app/download
+# Create the download directory and set permissions
+RUN mkdir -p /app/download && chmod 777 /app/download
 
 # Expose the port your app runs on
-EXPOSE 5000
+EXPOSE $PORT
 
-# Start the application
-CMD ["uvicorn", "main:app", "--bind", "0.0.0.0:5000"]
+# Start the application using gunicorn
+CMD ["gunicorn", "main:app", "--bind", "0.0.0.0:$PORT"]
