@@ -1,0 +1,4 @@
+flask
+yt-dlp
+ffmpeg-python  # Required for proper audio/video processing
+gunicorn       # Needed for deployment on platforms like Heroku
