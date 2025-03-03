@@ -1,1 +1,1 @@
-web: gunicorn ytdl:app
+web: gunicorn main:app
