@@ -33,4 +33,4 @@ RUN mkdir -p /app/download
 EXPOSE 5000
 
 # Start the application
-CMD ["gunicorn", "main:app", "--bind", "0.0.0.0:5000"]
+CMD ["uvicorn", "main:app", "--bind", "0.0.0.0:5000"]
