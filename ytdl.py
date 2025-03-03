@@ -46,7 +46,8 @@ def download_video(url, format, ext, quality="128k"):
             return {
                 "status": 404,
                 "success": False,
-                "message": "Download failed, file not found!"
+                "creator": "GiftedTech",
+                "message": "Download Failed, File Path Not Found!"
             }
 
         # Get thumbnail
@@ -64,6 +65,7 @@ def download_video(url, format, ext, quality="128k"):
         return {
             "status": 500,
             "success": False,
+            "creator": "GiftedTech",
             "error": str(e)
         }
 
@@ -74,7 +76,8 @@ def ytmp3():
         return jsonify({
             "status": 400,
             "success": False,
-            "error": "No URL provided"
+            "creator": "GiftedTech",
+            "error": "Youtube URL(Link) is Required"
         }), 400
 
     quality = request.args.get('quality', '128k')  # Default quality
@@ -91,6 +94,7 @@ def ytmp4():
         return jsonify({
             "status": 400,
             "success": False,
+            "creator": "GiftedTech",
             "error": "No URL provided"
         }), 400
 
@@ -121,7 +125,8 @@ def serve_file(filename):
         return jsonify({
             "status": 404,
             "success": False,
-            "error": "File not found"
+            "creator": "GiftedTech",
+            "error": "Download Failed, File Not Found"
         }), 404
 
     return send_file(file_path, as_attachment=True)
