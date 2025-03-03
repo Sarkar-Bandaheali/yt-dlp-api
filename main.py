@@ -1,4 +1,3 @@
-
 from flask import Flask, request, jsonify, send_file, url_for
 import subprocess
 import os
@@ -7,7 +6,7 @@ import glob
 app = Flask(__name__)
 
 DOWNLOAD_PATH = "download"  # Ensure this folder exists
-os.makedirs(DOWNLOAD_PATH, exist_ok=True)
+os.makedirs(DOWNLOAD_PATH, exist_ok=True, mode=0o777)
 
 def get_latest_file(ext):
     """ Get the most recent file with the given extension in the downloads directory """
