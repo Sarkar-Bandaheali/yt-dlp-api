@@ -116,7 +116,7 @@ def ytmp4():
     result = download_video(url, selected_format, "mp4")
     return jsonify(result)
 
-@app.route('/downloads/<filename>', methods=['GET'])
+@app.route('/download/<filename>', methods=['GET'])
 def serve_file(filename):
     """ Serve the downloaded file for direct download (not streaming) """
     file_path = os.path.join(DOWNLOAD_PATH, filename)
