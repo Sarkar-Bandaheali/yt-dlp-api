@@ -5,7 +5,7 @@ import glob
 
 app = Flask(__name__)
 
-DOWNLOAD_PATH = "downloads"  # Ensure this folder exists
+DOWNLOAD_PATH = "videos"  # Ensure this folder exists
 os.makedirs(DOWNLOAD_PATH, exist_ok=True)
 
 def get_latest_file(ext):
