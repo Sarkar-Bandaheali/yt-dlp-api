@@ -26,6 +26,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY . .
 
+# Create the download directory
+RUN mkdir -p /app/download
+
 # Expose the port your app runs on
 EXPOSE 5000
 
