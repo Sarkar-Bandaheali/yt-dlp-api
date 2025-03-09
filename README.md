@@ -25,8 +25,8 @@ This is a Flask-based API that allows users to download YouTube videos in MP3 or
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/youtube-downloader-api.git
-   cd youtube-downloader-api
+   git clone https://github.com/mauricegift/yt-dlp.git
+   cd yt-dlp
    ```
 
 2. **Install dependencies**:
