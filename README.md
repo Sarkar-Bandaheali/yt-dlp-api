@@ -1,6 +1,6 @@
-# YouTube Downloader API
+# YtDlp Downloader API
 
-This is a Flask-based API that allows users to download YouTube videos in MP3 or MP4 format. The API uses `yt-dlp` to handle the searchibg, detailing,  downloading and extraction of video/audio content. It also provides a thumbnail URL for the video and a direct download link for the downloaded file.
+This is a Flask-based API that allows users to download media as MP3 or MP4 formats from youtube and other social media platforms. The API uses `yt-dlp` to handle the searching, detailing,  downloading and extraction of video/audio content. It also provides a thumbnail URL for the video and a direct download link for the downloaded file. Downloaded files auto deletes in 1 hour time unless you download using the download_url then find it permanently in downloads folder from your device.
 
 ## To Do
 - You can add a ui to it
