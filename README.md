@@ -39,8 +39,8 @@ This is a Flask-based API that allows users to download media as MP3 or MP4 form
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/mauricegift/yt-dlp.git
-   cd yt-dlp
+   git clone https://github.com/mauricegift/yt-dlp-api.git
+   cd yt-dlp-api
    ```
 
 2. **Install dependencies**:
