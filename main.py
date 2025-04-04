@@ -1,20 +1,49 @@
 import os
 import glob
 import json
-# import time
+import time
 import requests
 import platform
-# from datetime import timedelta
+from datetime import timedelta, datetime
 import subprocess
 from flask import Flask, request, jsonify, send_file, url_for
+import threading
 
 app = Flask(__name__)
 
 DOWNLOAD_PATH = "download"  # Ensure this folder exists
 os.makedirs(DOWNLOAD_PATH, exist_ok=True, mode=0o777)
 
+# Dictionary to track file deletion times
+file_deletion_times = {}
+
+def schedule_file_deletion(file_path):
+    """Schedule a file to be deleted after 1 hour"""
+    deletion_time = datetime.now() + timedelta(hours=1)
+    file_deletion_times[file_path] = deletion_time
+    threading.Timer(3600, lambda: delete_file_if_exists(file_path)).start()
+
+def delete_file_if_exists(file_path):
+    """Delete file if it exists and remove from tracking"""
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print(f"Deleted file: {file_path}")
+    except Exception as e:
+        print(f"Error deleting file {file_path}: {e}")
+    finally:
+        file_deletion_times.pop(file_path, None)
+
+def cleanup_old_files():
+    """Cleanup files that should have been deleted but weren't"""
+    now = datetime.now()
+    for file_path, deletion_time in list(file_deletion_times.items()):
+        if now >= deletion_time:
+            delete_file_if_exists(file_path)
+
 def get_latest_file(ext):
     """ Get the most recent file with the given extension in the downloads directory """
+    cleanup_old_files()  # Cleanup before getting new files
     files = glob.glob(os.path.join(DOWNLOAD_PATH, f"*.{ext}"))
     return max(files, key=os.path.getctime) if files else None
 
@@ -55,6 +84,9 @@ def download_video(url, format, ext, quality="128k"):
                 "message": "Download Failed, File Path Not Found!"
             }
 
+        # Schedule file deletion after 1 hour
+        schedule_file_deletion(downloaded_file)
+
         # Get thumbnail
         thumbnail_url = get_thumbnail(url)
 
@@ -63,7 +95,8 @@ def download_video(url, format, ext, quality="128k"):
             "success": True,
             "creator": "GiftedTech",
             "thumbnail": thumbnail_url,
-            "download_url": url_for('serve_file', filename=os.path.basename(downloaded_file), _external=True)
+            "download_url": url_for('serve_file', filename=os.path.basename(downloaded_file), _external=True),
+            "important": "File auto deletes after 1 hour"
         }
 
     except subprocess.CalledProcessError as e:
@@ -76,7 +109,7 @@ def download_video(url, format, ext, quality="128k"):
 
 @app.route('/')
 def index():
-    
+    start_time = time.time()
     try:
         # Get IP information
         ip_info = requests.get('https://ipinfo.io/json').json()
@@ -187,7 +220,8 @@ def ytsearch():
             "status": 400,
             "success": False,
             "creator": "GiftedTech",
-            "error": "Search query is required"
+            "error": "Search query is required",
+            "important": "Downloaded files auto delete after 1 hour"
         }), 400
 
     try:
@@ -216,7 +250,8 @@ def ytsearch():
             "status": 200,
             "success": True,
             "creator": "GiftedTech",
-            "results": videos
+            "results": videos,
+            "important": "Downloaded files auto delete after 1 hour"
         })
 
     except subprocess.CalledProcessError as e:
@@ -224,7 +259,8 @@ def ytsearch():
             "status": 500,
             "success": False,
             "creator": "GiftedTech",
-            "error": str(e)
+            "error": str(e),
+            "important": "Downloaded files auto delete after 1 hour"
         }), 500
 
 @app.route('/api/details.php', methods=['GET'])
@@ -235,7 +271,8 @@ def video_details():
             "status": 400,
             "success": False,
             "creator": "GiftedTech",
-            "error": "URL is required"
+            "error": "URL is required",
+            "important": "Downloaded files auto delete after 1 hour"
         }), 400
 
     try:
@@ -277,7 +314,8 @@ def video_details():
             "status": 200,
             "success": True,
             "creator": "GiftedTech",
-            "result": info
+            "result": info,
+            "important": "Downloaded files auto delete after 1 hour"
         })
 
     except subprocess.CalledProcessError as e:
@@ -285,7 +323,8 @@ def video_details():
             "status": 500,
             "success": False,
             "creator": "GiftedTech",
-            "error": str(e)
+            "error": str(e),
+            "important": "Downloaded files auto delete after 1 hour"
         }), 500
 
 # Route for Downloading from multiple platforms not only youtube
@@ -299,7 +338,8 @@ def download_media():
             "status": 400,
             "success": False,
             "creator": "GiftedTech",
-            "error": "URL is required"
+            "error": "URL is required",
+            "important": "Downloaded files auto delete after 1 hour"
         }), 400
 
     if not media_type:
@@ -307,7 +347,8 @@ def download_media():
             "status": 400,
             "success": False,
             "creator": "GiftedTech",
-            "error": "Type parameter is required (mp3 or mp4)"
+            "error": "Type parameter is required (mp3 or mp4)",
+            "important": "Downloaded files auto delete after 1 hour"
         }), 400
 
     if media_type not in ['mp3', 'mp4']:
@@ -315,7 +356,8 @@ def download_media():
             "status": 400,
             "success": False,
             "creator": "GiftedTech",
-            "error": "Invalid type. Use mp3 or mp4"
+            "error": "Invalid type. Use mp3 or mp4",
+            "important": "Downloaded files auto delete after 1 hour"
         }), 400
 
     # For MP4, get the best quality - 720p
@@ -337,7 +379,8 @@ def ytmp3():
             "status": 400,
             "success": False,
             "creator": "GiftedTech",
-            "error": "Youtube URL(Link) is Required"
+            "error": "Youtube URL(Link) is Required",
+            "important": "Downloaded files auto delete after 1 hour"
         }), 400
 
     quality = request.args.get('quality', '128k')  # Default quality to 128kbps
@@ -356,7 +399,8 @@ def ytmp4():
             "status": 400,
             "success": False,
             "creator": "GiftedTech",
-            "error": "No URL provided"
+            "error": "No URL provided",
+            "important": "Downloaded files auto delete after 1 hour"
         }), 400
 
     # Get format parameter, default quality to 720p
@@ -387,10 +431,18 @@ def serve_file(filename):
             "status": 404,
             "success": False,
             "creator": "GiftedTech",
-            "error": "Download Failed, File Not Found"
+            "error": "Download Failed, File Not Found",
+            "important": "Files auto delete after 1 hour"
         }), 404
 
     return send_file(file_path, as_attachment=True)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000);
+    # Cleanup any existing files on startup
+    for file in glob.glob(os.path.join(DOWNLOAD_PATH, '*')):
+        try:
+            os.remove(file)
+        except:
+            pass
+    
+    app.run(debug=True, port=5000)
