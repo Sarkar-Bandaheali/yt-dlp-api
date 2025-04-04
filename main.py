@@ -2,6 +2,9 @@ from flask import Flask, request, jsonify, send_file, url_for
 import subprocess
 import os
 import glob
+import json
+import psutil
+import socket
 
 app = Flask(__name__)
 
@@ -14,7 +17,7 @@ def get_latest_file(ext):
     return max(files, key=os.path.getctime) if files else None
 
 def get_thumbnail(url):
-    """ Extract YouTube video thumbnail """
+    """ Extract video thumbnail """
     try:
         command = ["yt-dlp", "--get-thumbnail", url]
         result = subprocess.run(command, capture_output=True, text=True, check=True)
@@ -69,6 +72,180 @@ def download_video(url, format, ext, quality="128k"):
             "error": str(e)
         }
 
+@app.route('/')
+def index():
+    # Get system information
+    ram = psutil.virtual_memory()
+    cpu = psutil.cpu_percent()
+    
+    # Get client IP address
+    if request.headers.getlist("X-Forwarded-For"):
+        ip = request.headers.getlist("X-Forwarded-For")[0]
+    else:
+        ip = request.remote_addr
+    
+    return jsonify({
+        "status": 200,
+        "success": True,
+        "creator": "GiftedTech",
+        "message": "Ytdlp Api is Running",
+        "more_info": {
+            "ip_address": ip,
+            "ram_usage": f"{ram.used / (1024 ** 3):.2f}GB / {ram.total / (1024 ** 3):.2f}GB ({ram.percent}%)",
+            "cpu_usage": f"{cpu}%"
+        }
+    })
+
+@app.route('/api/ytsearch.php', methods=['GET'])
+def ytsearch():
+    query = request.args.get('query')
+    if not query:
+        return jsonify({
+            "status": 400,
+            "success": False,
+            "creator": "GiftedTech",
+            "error": "Search query is required"
+        }), 400
+
+    try:
+        # Get first 10 results 
+        command = [
+            "yt-dlp",
+            "ytsearch10:" + query,
+            "--dump-json",
+            "--flat-playlist",
+            "--skip-download"
+        ]
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        
+        videos = []
+        for line in result.stdout.splitlines():
+            data = json.loads(line)
+            videos.append({
+                "id": data.get('id'),
+                "url": data.get('url'),
+                "title": data.get('title'),
+                "thumbnail": data.get('thumbnail'),
+                "artist": data.get('uploader')
+            })
+
+        return jsonify({
+            "status": 200,
+            "success": True,
+            "creator": "GiftedTech",
+            "results": videos
+        })
+
+    except subprocess.CalledProcessError as e:
+        return jsonify({
+            "status": 500,
+            "success": False,
+            "creator": "GiftedTech",
+            "error": str(e)
+        }), 500
+
+@app.route('/api/details.php', methods=['GET'])
+def video_details():
+    url = request.args.get('url')
+    if not url:
+        return jsonify({
+            "status": 400,
+            "success": False,
+            "creator": "GiftedTech",
+            "error": "URL is required"
+        }), 400
+
+    try:
+        # Get video details and available formats
+        command = [
+            "yt-dlp",
+            url,
+            "--dump-json",
+            "--skip-download",
+            "--no-warnings"
+        ]
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        data = json.loads(result.stdout)
+
+        # Extract basic info
+        info = {
+            "id": data.get('id'),
+            "title": data.get('title'),
+            "thumbnail": data.get('thumbnail'),
+            "uploader": data.get('uploader'),
+            "duration": data.get('duration'),
+            "formats": []
+        }
+
+        # Extract available formats
+        for fmt in data.get('formats', []):
+            format_info = {
+                "format_id": fmt.get('format_id'),
+                "ext": fmt.get('ext'),
+                "resolution": fmt.get('resolution', 'audio'),
+                "filesize": fmt.get('filesize'),
+                "vcodec": fmt.get('vcodec', 'none'),
+                "acodec": fmt.get('acodec', 'none'),
+                "format_note": fmt.get('format_note', '')
+            }
+            info['formats'].append(format_info)
+
+        return jsonify({
+            "status": 200,
+            "success": True,
+            "creator": "GiftedTech",
+            "result": info
+        })
+
+    except subprocess.CalledProcessError as e:
+        return jsonify({
+            "status": 500,
+            "success": False,
+            "creator": "GiftedTech",
+            "error": str(e)
+        }), 500
+
+# Route for Downloading from multiple platforms not only youtube
+@app.route('/api/download.php', methods=['GET'])
+def download_media():
+    url = request.args.get('url')
+    media_type = request.args.get('type')
+
+    if not url:
+        return jsonify({
+            "status": 400,
+            "success": False,
+            "creator": "GiftedTech",
+            "error": "URL is required"
+        }), 400
+
+    if not media_type:
+        return jsonify({
+            "status": 400,
+            "success": False,
+            "creator": "GiftedTech",
+            "error": "Type parameter is required (mp3 or mp4)"
+        }), 400
+
+    if media_type not in ['mp3', 'mp4']:
+        return jsonify({
+            "status": 400,
+            "success": False,
+            "creator": "GiftedTech",
+            "error": "Invalid type. Use mp3 or mp4"
+        }), 400
+
+    # For MP4, get the best quality - 720p
+    if media_type == "mp4":
+        format_param = "bestvideo[height<=720]+bestaudio/best[height<=720]"
+    else:  # MP3
+        format_param = "bestaudio"
+        media_type = "mp3"
+
+    result = download_video(url, format_param, media_type)
+    return jsonify(result)
+
+# Route for Downloading youtube mp3 only with or without quality parameter
 @app.route('/api/ytmp3.php', methods=['GET'])
 def ytmp3():
     url = request.args.get('url')
@@ -80,13 +257,14 @@ def ytmp3():
             "error": "Youtube URL(Link) is Required"
         }), 400
 
-    quality = request.args.get('quality', '128k')  # Default quality
+    quality = request.args.get('quality', '128k')  # Default quality to 128kbps
     valid_qualities = ["128k", "192k", "256k", "320k"]
     quality = quality if quality in valid_qualities else "128k"
 
     result = download_video(url, "bestaudio", "mp3", quality)
-    return jsonify(result)  # Ensure proper JSON response format
+    return jsonify(result)
 
+# Route for Downloading youtube mp4 only with or without quality parameter
 @app.route('/api/ytmp4.php', methods=['GET'])
 def ytmp4():
     url = request.args.get('url')
@@ -98,7 +276,7 @@ def ytmp4():
             "error": "No URL provided"
         }), 400
 
-    # Get format parameter, default to 720p
+    # Get format parameter, default quality to 720p
     format_param = request.args.get('format', '720p')
 
     # Map user-friendly formats to yt-dlp formats
