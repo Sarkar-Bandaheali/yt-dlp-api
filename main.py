@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, send_file, url_for
 import subprocess
 import os
+import platform
 import glob
 import json
 import requests  
@@ -71,34 +72,104 @@ def download_video(url, format, ext, quality="128k"):
             "error": str(e)
         }
 
+
 @app.route('/')
 def index():
     try:
-        # Get IP information via ipinfo.io
+        # Get IP information
         ip_info = requests.get('https://ipinfo.io/json').json()
+        
+        # Get RAM usage using os (cross-platform)
+        ram_info = {}
+        try:
+            system = platform.system().lower()
+            
+            if system == "linux":
+                # Linux memory info
+                with open('/proc/meminfo') as f:
+                    meminfo = f.read()
+                total_kb = int(meminfo.split('MemTotal:')[1].split()[0])
+                free_kb = int(meminfo.split('MemFree:')[1].split()[0])
+                available_kb = int(meminfo.split('MemAvailable:')[1].split()[0])
+                
+                total = total_kb / (1024 * 1024)  # Convert KB to GB
+                free = free_kb / (1024 * 1024)
+                available = available_kb / (1024 * 1024)
+                used = total - free
+                percent = (used / total) * 100
+                
+            elif system == "darwin":  # macOS
+                # macOS memory info
+                total_bytes = int(os.popen('sysctl hw.memsize').read().split()[-1])
+                vm_stat = os.popen('vm_stat').read().split()
+                free_pages = int(vm_stat[vm_stat.index('free:')+1][:-1])
+                page_size = 4096  # bytes
+                
+                total = total_bytes / (1024 ** 3)  # Convert bytes to GB
+                free = (free_pages * page_size) / (1024 ** 3)
+                used = total - free
+                percent = (used / total) * 100
+                available = free
+                
+            elif system == "windows":
+                # Windows memory info
+                total_bytes = int(os.popen('wmic memorychip get capacity').read().split()[1])
+                free_bytes = int(os.popen('wmic OS get FreePhysicalMemory /Value').read().split('=')[1]) * 1024
+                
+                total = total_bytes / (1024 ** 3)  # Convert bytes to GB
+                free = free_bytes / (1024 ** 3)
+                used = total - free
+                percent = (used / total) * 100
+                available = free
+                
+            else:
+                raise Exception(f"Unsupported OS: {system}")
+                
+            ram_info = {
+                "total": f"{total:.2f}GB",
+                "used": f"{used:.2f}GB",
+                "free": f"{free:.2f}GB",
+                "available": f"{available:.2f}GB",
+                "usage_percentage": f"{percent:.1f}%"
+            }
+            
+        except Exception as ram_error:
+            ram_info = {
+                "error": f"RAM info unavailable: {str(ram_error)}",
+                "available": False
+            }
+
         return jsonify({
             "status": 200,
             "success": True,
             "creator": "GiftedTech",
             "message": "Ytdlp Api is Running",
-            "more_info": {
-                "ip_address": ip_info.get('ip'),
-                "country": ip_info.get('country'),
-                "city": ip_info.get('city'),
-                "region": ip_info.get('region'),
-                "location": ip_info.get('loc'),
-                "postal": ip_info.get('postal'),
-                "wifi_org": ip_info.get('org'),
-                "timezone": ip_info.get('timezone')
+            "ip_info": {
+                    "address": ip_info.get('ip'),
+                    "country": ip_info.get('country'),
+                    "city": ip_info.get('city'),
+                    "region": ip_info.get('region'),
+                    "coordinates": ip_info.get('loc'),
+                    "postal_code": ip_info.get('postal'),
+                    "isp": ip_info.get('org'),
+                    "timezone": ip_info.get('timezone')
+                },
+                "memory_info": ram_info,
+                "platform_info": {
+                    "system": platform.system(),
+                    "release": platform.release(),
+                    "machine": platform.machine()
+                }
             }
         })
+
     except Exception as e:
         return jsonify({
             "status": 200,
             "success": True,
             "creator": "GiftedTech",
             "message": "Ytdlp Api is Running",
-            "warning": "Could not fetch IP information",
+            "warning": "Could not fetch system information",
             "error": str(e)
         })
 
@@ -317,4 +388,4 @@ def serve_file(filename):
     return send_file(file_path, as_attachment=True)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000);
