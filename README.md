@@ -53,12 +53,12 @@ This is a Flask-based API that allows users to download YouTube videos in MP3 or
 ---
 
 ## API Endpoints
-- `/` Api Json Page(System Info)
-- `/api/ytsearch.php` YouTube search only
-- `/api/ytmp4.php` YouTube videos only
-- `/api/ytmp4.php` YouTube audios only
-- `/api/download.php` All platforms media(audio/video) specify type ie &type=mp3 / &type=mp4
-- `/api/details.php` Details and available formats of media
+- `/` Api json Page(System Info)
+- `/api/ytsearch.php` YouTube search only....params => query
+- `/api/ytmp4.php` YouTube videos only downloader....params => url
+- `/api/ytmp4.php` YouTube audios only downloader....params => url
+- `/api/download.php` All platforms media downloader(audio/video)....params => url,type ie &type=mp3 / &type=mp4
+- `/api/details.php` Details and available formats of media....params => url
 
 ### 1. Download YouTube Video as MP3
 - **Endpoint**: `/api/ytmp3.php`
