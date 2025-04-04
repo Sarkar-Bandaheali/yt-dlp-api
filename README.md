@@ -23,6 +23,7 @@ This is a Flask-based API that allows users to download YouTube videos in MP3 or
 ---
 
 ## Installation
+- You can run it locally on PC or via termux apk
 
 1. **Clone the repository**:
    ```bash
