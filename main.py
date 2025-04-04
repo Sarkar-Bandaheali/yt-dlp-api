@@ -72,7 +72,6 @@ def download_video(url, format, ext, quality="128k"):
             "error": str(e)
         }
 
-
 @app.route('/')
 def index():
     try:
@@ -145,22 +144,31 @@ def index():
             "creator": "GiftedTech",
             "message": "Ytdlp Api is Running",
             "ip_info": {
-                    "address": ip_info.get('ip'),
-                    "country": ip_info.get('country'),
-                    "city": ip_info.get('city'),
-                    "region": ip_info.get('region'),
-                    "coordinates": ip_info.get('loc'),
-                    "postal_code": ip_info.get('postal'),
-                    "isp": ip_info.get('org'),
-                    "timezone": ip_info.get('timezone')
-                },
-                "memory_info": ram_info,
-                "platform_info": {
-                    "system": platform.system(),
-                    "release": platform.release(),
-                    "machine": platform.machine()
-                }
+                "ipAddress": ip_info.get('ip'),
+                "country": ip_info.get('country'),
+                "city": ip_info.get('city'),
+                "region": ip_info.get('region'),
+                "location": ip_info.get('loc'),
+                "postal_code": ip_info.get('postal'),
+                "net_isp": ip_info.get('org'),
+                "timezone": ip_info.get('timezone')
+            },
+            "memory_info": ram_info,
+            "platform_info": {
+                "system": platform.system(),
+                "release": platform.release(),
+                "machine": platform.machine()
             }
+        })
+
+    except Exception as e:
+        return jsonify({
+            "status": 200,
+            "success": True,
+            "creator": "GiftedTech",
+            "message": "Ytdlp Api is Running",
+            "warning": "Could not fetch system information",
+            "error": str(e)
         })
 
     except Exception as e:
