@@ -1,5 +1,13 @@
 # YtDlp Downloader API
 
+- You can run it locally on PC or via termux apk
+<details>
+<summary>TERMUX IMAGES</summary>
+
+   ![1001540384](https://github.com/user-attachments/assets/510de06e-5247-4fa1-a3ee-35dcf0914355)
+
+</details>
+
 This is a Flask-based API that allows users to download media as MP3 or MP4 formats from youtube and other social media platforms. The API uses `yt-dlp` to handle the searching, detailing,  downloading and extraction of video/audio content. It also provides a thumbnail URL for the video and a direct download link for the downloaded file. Downloaded files auto deletes in 1 hour time unless you download using the download_url then find it permanently in downloads folder from your device.
 
 ## To Do
