@@ -2,4 +2,4 @@ flask
 yt-dlp
 psutil
 ffmpeg-python
-gunicorn #Needes for platforms like Heroku etc
+gunicorn #Needed for platforms like Heroku etc
