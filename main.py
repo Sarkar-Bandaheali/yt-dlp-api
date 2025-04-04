@@ -1,10 +1,10 @@
 import os
 import glob
 import json
-import time
+# import time
 import requests
 import platform
-from datetime import timedelta
+# from datetime import timedelta
 import subprocess
 from flask import Flask, request, jsonify, send_file, url_for
 
@@ -76,8 +76,6 @@ def download_video(url, format, ext, quality="128k"):
 
 @app.route('/')
 def index():
-    # Record the start time for server runtime calculation
-    start_time = time.time()
     
     try:
         # Get IP information
@@ -143,10 +141,6 @@ def index():
                 "available": False
             }
 
-        # Calculate server runtime (uptime)
-        uptime_seconds = time.time() - start_time
-        uptime_str = str(timedelta(seconds=uptime_seconds)).split('.')[0]  # Remove microseconds
-
         return jsonify({
             "status": 200,
             "success": True,
@@ -167,8 +161,7 @@ def index():
                 "system": platform.system(),
                 "release": platform.release(),
                 "machine": platform.machine()
-            },
-            "server_runtime": uptime_str
+            }
         })
 
     except Exception as e:
