@@ -1,10 +1,12 @@
-from flask import Flask, request, jsonify, send_file, url_for
-import subprocess
 import os
-import platform
 import glob
 import json
-import requests  
+import time
+import requests
+import platform
+from datetime import timedelta
+import subprocess
+from flask import Flask, request, jsonify, send_file, url_for
 
 app = Flask(__name__)
 
@@ -74,6 +76,9 @@ def download_video(url, format, ext, quality="128k"):
 
 @app.route('/')
 def index():
+    # Record the start time for server runtime calculation
+    start_time = time.time()
+    
     try:
         # Get IP information
         ip_info = requests.get('https://ipinfo.io/json').json()
@@ -138,6 +143,10 @@ def index():
                 "available": False
             }
 
+        # Calculate server runtime (uptime)
+        uptime_seconds = time.time() - start_time
+        uptime_str = str(timedelta(seconds=uptime_seconds)).split('.')[0]  # Remove microseconds
+
         return jsonify({
             "status": 200,
             "success": True,
@@ -158,29 +167,24 @@ def index():
                 "system": platform.system(),
                 "release": platform.release(),
                 "machine": platform.machine()
-            }
+            },
+            "server_runtime": uptime_str
         })
 
     except Exception as e:
+        # Calculate runtime even if there's an error
+        uptime_seconds = time.time() - start_time
+        uptime_str = str(timedelta(seconds=uptime_seconds)).split('.')[0]
+        
         return jsonify({
             "status": 200,
             "success": True,
             "creator": "GiftedTech",
             "message": "Ytdlp Api is Running",
             "warning": "Could not fetch system information",
-            "error": str(e)
+            "error": str(e),
+            "server_runtime": uptime_str
         })
-
-    except Exception as e:
-        return jsonify({
-            "status": 200,
-            "success": True,
-            "creator": "GiftedTech",
-            "message": "Ytdlp Api is Running",
-            "warning": "Could not fetch system information",
-            "error": str(e)
-        })
-
 
 @app.route('/api/ytsearch.php', methods=['GET'])
 def ytsearch():
