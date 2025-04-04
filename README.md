@@ -1,12 +1,12 @@
 # YouTube Downloader API
 
-This is a Flask-based API that allows users to download YouTube videos in MP3 or MP4 format. The API uses `yt-dlp` to handle the downloading and extraction of video/audio content. It also provides a thumbnail URL for the video and a direct download link for the downloaded file.
+This is a Flask-based API that allows users to download YouTube videos in MP3 or MP4 format. The API uses `yt-dlp` to handle the searchibg, detailing,  downloading and extraction of video/audio content. It also provides a thumbnail URL for the video and a direct download link for the downloaded file.
 
 ---
 
 ## Features
 
-- **Download YouTube videos as MP3**: Convert and download YouTube videos as MP3 audio files with customizable audio quality.
+- **Download YouTube videos as MP3**: Convert and download YouTube videos as MP3 audio files with customizable audio qualities (128kbps, 320kbps, 86kbps, 196kbps, or best available).
 - **Download YouTube videos as MP4**: Download YouTube videos in various resolutions (360p, 480p, 720p, 1080p, or best available).
 - **Thumbnail Extraction**: Retrieve the thumbnail URL of the YouTube video.
 - **Direct Download Link**: Get a direct download link for the downloaded file.
@@ -18,6 +18,7 @@ This is a Flask-based API that allows users to download YouTube videos in MP3 or
 - Python 3.7+
 - Flask
 - yt-dlp
+- requests
 
 ---
 
@@ -52,6 +53,12 @@ This is a Flask-based API that allows users to download YouTube videos in MP3 or
 ---
 
 ## API Endpoints
+- `/` Api Json Page(System Info)
+- `/api/ytsearch.php` YouTube search only
+- `/api/ytmp4.php` YouTube videos only
+- `/api/ytmp4.php` YouTube audios only
+- `/api/download.php` All platforms media(audio/video) specify type ie &type=mp3 / &type=mp4
+- `/api/details.php` Details and available formats of media
 
 ### 1. Download YouTube Video as MP3
 - **Endpoint**: `/api/ytmp3.php`
