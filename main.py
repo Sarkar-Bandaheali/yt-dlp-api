@@ -3,8 +3,7 @@ import subprocess
 import os
 import glob
 import json
-import psutil
-import socket
+import requests  
 
 app = Flask(__name__)
 
@@ -74,27 +73,35 @@ def download_video(url, format, ext, quality="128k"):
 
 @app.route('/')
 def index():
-    # Get system information
-    ram = psutil.virtual_memory()
-    cpu = psutil.cpu_percent()
-    
-    # Get client IP address
-    if request.headers.getlist("X-Forwarded-For"):
-        ip = request.headers.getlist("X-Forwarded-For")[0]
-    else:
-        ip = request.remote_addr
-    
-    return jsonify({
-        "status": 200,
-        "success": True,
-        "creator": "GiftedTech",
-        "message": "Ytdlp Api is Running",
-        "more_info": {
-            "ip_address": ip,
-            "ram_usage": f"{ram.used / (1024 ** 3):.2f}GB / {ram.total / (1024 ** 3):.2f}GB ({ram.percent}%)",
-            "cpu_usage": f"{cpu}%"
-        }
-    })
+    try:
+        # Get IP information via ipinfo.io
+        ip_info = requests.get('https://ipinfo.io/json').json()
+        return jsonify({
+            "status": 200,
+            "success": True,
+            "creator": "GiftedTech",
+            "message": "Ytdlp Api is Running",
+            "more_info": {
+                "ip_address": ip_info.get('ip'),
+                "country": ip_info.get('country'),
+                "city": ip_info.get('city'),
+                "region": ip_info.get('region'),
+                "location": ip_info.get('loc'),
+                "postal": ip_info.get('postal'),
+                "wifi_org": ip_info.get('org'),
+                "timezone": ip_info.get('timezone')
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            "status": 200,
+            "success": True,
+            "creator": "GiftedTech",
+            "message": "Ytdlp Api is Running",
+            "warning": "Could not fetch IP information",
+            "error": str(e)
+        })
+
 
 @app.route('/api/ytsearch.php', methods=['GET'])
 def ytsearch():
