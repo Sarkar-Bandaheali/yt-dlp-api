@@ -220,8 +220,7 @@ def ytsearch():
             "status": 400,
             "success": False,
             "creator": "GiftedTech",
-            "error": "Search query is required",
-            "important": "Downloaded files auto delete after 1 hour"
+            "error": "Search query is required"
         }), 400
 
     try:
@@ -250,8 +249,7 @@ def ytsearch():
             "status": 200,
             "success": True,
             "creator": "GiftedTech",
-            "results": videos,
-            "important": "Downloaded files auto delete after 1 hour"
+            "results": videos
         })
 
     except subprocess.CalledProcessError as e:
@@ -259,8 +257,7 @@ def ytsearch():
             "status": 500,
             "success": False,
             "creator": "GiftedTech",
-            "error": str(e),
-            "important": "Downloaded files auto delete after 1 hour"
+            "error": str(e)
         }), 500
 
 @app.route('/api/details.php', methods=['GET'])
@@ -271,8 +268,7 @@ def video_details():
             "status": 400,
             "success": False,
             "creator": "GiftedTech",
-            "error": "URL is required",
-            "important": "Downloaded files auto delete after 1 hour"
+            "error": "URL is required"
         }), 400
 
     try:
@@ -314,8 +310,7 @@ def video_details():
             "status": 200,
             "success": True,
             "creator": "GiftedTech",
-            "result": info,
-            "important": "Downloaded files auto delete after 1 hour"
+            "result": info
         })
 
     except subprocess.CalledProcessError as e:
@@ -323,8 +318,7 @@ def video_details():
             "status": 500,
             "success": False,
             "creator": "GiftedTech",
-            "error": str(e),
-            "important": "Downloaded files auto delete after 1 hour"
+            "error": str(e)
         }), 500
 
 # Route for Downloading from multiple platforms not only youtube
