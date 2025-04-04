@@ -2,6 +2,9 @@
 
 This is a Flask-based API that allows users to download YouTube videos in MP3 or MP4 format. The API uses `yt-dlp` to handle the searchibg, detailing,  downloading and extraction of video/audio content. It also provides a thumbnail URL for the video and a direct download link for the downloaded file.
 
+## To Do
+- You can add a ui to it
+
 ---
 
 ## Features
@@ -24,6 +27,7 @@ This is a Flask-based API that allows users to download YouTube videos in MP3 or
 
 ## Installation
 - You can run it locally on PC or via termux apk
+- If you need to host it you must have youtube cookies, to know how to host it on any platform without cookies please **[CONTACT THE AUTHOR](https://t.me/mouricedevs)**
 
 1. **Clone the repository**:
    ```bash
